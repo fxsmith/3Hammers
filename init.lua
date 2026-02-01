@@ -1,17 +1,62 @@
-local function newGhosttyHere()
-    local app = hs.application.get("Ghostty")
-
-    if not app then
-        -- Launch without macOS jumping Spaces
-        hs.application.open("Ghostty", 0, false)
-        hs.timer.doAfter(0.3, function()
-            hs.eventtap.keyStroke({"cmd"}, "n")
-        end)
-    else
-        -- Tell running app to make a new window in THIS Space
-        app:activate(false) -- don't switch spaces
-        hs.eventtap.keyStroke({"cmd"}, "n")
+-- ============================================================
+-- Core Helper: Focus ONLY the newly created window
+-- ============================================================
+local function focusNewWindow(appName, actionFn)
+  local app = hs.application.get(appName)
+  local oldWinIds = {}
+  if app then
+    for _, w in ipairs(app:allWindows()) do
+      oldWinIds[w:id()] = true
     end
+  end
+
+  -- Perform the action (launch or keystroke)
+  actionFn(app)
+
+  -- Poll for new window
+  hs.timer.doAfter(0.1, function()
+    local attempts = 0
+    local function check()
+      attempts = attempts + 1
+      local targetApp = hs.application.get(appName)
+      if not targetApp then
+        if attempts < 30 then hs.timer.doAfter(0.1, check) end
+        return
+      end
+
+      for _, w in ipairs(targetApp:allWindows()) do
+        if not oldWinIds[w:id()] then
+          -- Found new window! Focus ONLY this window.
+          w:focus() 
+          return
+        end
+      end
+      
+      -- Keep looking for 3 seconds
+      if attempts < 30 then
+        hs.timer.doAfter(0.1, check)
+      else
+        -- Fallback: if no new window detected, activate the app
+        -- (This ensures we at least see the app if something went wrong)
+        if targetApp then targetApp:activate() end
+      end
+    end
+    check()
+  end)
+end
+
+local function newGhosttyHere()
+    focusNewWindow("Ghostty", function(app)
+        if not app then
+            hs.application.open("Ghostty", 0, false)
+            hs.timer.doAfter(0.3, function()
+                hs.eventtap.keyStroke({"cmd"}, "n")
+            end)
+        else
+            -- Try to send keystroke to specific app without activating it fully
+            hs.eventtap.keyStroke({"cmd"}, "n", 0, app)
+        end
+    end)
 end
 
 hs.hotkey.bind({"ctrl", "alt", "cmd"}, "T", newGhosttyHere)
@@ -111,11 +156,10 @@ local function emacsClientHere()
     hs.notify.new({ title = "Hammerspoon", informativeText = "Cannot find emacsclient binary" }):send()
     return
   end
-  -- -c: create frame; -n: don't wait; -a "": don't auto-start GUI app
-  runAsync(shellquote(EMACSCLIENT) .. " -c -n -a ''")
-  hs.timer.doAfter(0.1, function()
-    local app = hs.application.get("Emacs")
-    if app then app:activate(true) end
+  
+  focusNewWindow("Emacs", function(app)
+    -- -c: create frame; -n: don't wait; -a "": don't auto-start GUI app
+    runAsync(shellquote(EMACSCLIENT) .. " -c -n -a ''")
   end)
 end
 
@@ -126,19 +170,16 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "M", emacsClientHere)
 -- ============================================================
 
 local function chromeNewWindowHere()
-  local app = hs.application.get("Google Chrome")
-  if not app then
-    -- Launch without forcing space switch
-    hs.application.open("Google Chrome", 0, false)
-    hs.timer.doAfter(0.5, function()
-      -- Requires Accessibility permission for Hammerspoon to send keystrokes
-      hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-    end)
-  else
-    -- Don't jump spaces; then create a new window "here"
-    app:activate(false)
-    hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-  end
+  focusNewWindow("Google Chrome", function(app)
+    if not app then
+      hs.application.open("Google Chrome", 0, false)
+      hs.timer.doAfter(0.5, function()
+        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
+      end)
+    else
+      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
+    end
+  end)
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromeNewWindowHere)
@@ -148,18 +189,16 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromeNewWindowHere)
 -- ============================================================
 
 local function braveNewWindowHere()
-  local app = hs.application.get("Brave Browser")
-  if not app then
-    -- Launch without forcing space switch
-    hs.application.open("Brave Browser", 0, false)
-    hs.timer.doAfter(0.5, function()
-      hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-    end)
-  else
-    -- Don't jump spaces; then create a new window "here"
-    app:activate(false)
-    hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-  end
+  focusNewWindow("Brave Browser", function(app)
+    if not app then
+      hs.application.open("Brave Browser", 0, false)
+      hs.timer.doAfter(0.5, function()
+        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
+      end)
+    else
+      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
+    end
+  end)
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "B", braveNewWindowHere)
@@ -246,18 +285,16 @@ end)
 -- ============================================================
 
 local function vscodeNewWindowHere()
-  local app = hs.application.get("Code")
-  if not app then
-    -- Launch without forcing space switch
-    hs.application.open("/Users/fredsmit/programs/Visual Studio Code.app", 0, false)
-    hs.timer.doAfter(0.5, function()
-      hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
-    end)
-  else
-    -- Don't jump spaces; then create a new window "here"
-    app:activate(false)
-    hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
-  end
+  focusNewWindow("Code", function(app)
+    if not app then
+      hs.application.open("/Users/fredsmit/programs/Visual Studio Code.app", 0, false)
+      hs.timer.doAfter(0.5, function()
+        hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
+      end)
+    else
+      hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0, app)
+    end
+  end)
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)

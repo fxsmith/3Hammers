@@ -3,7 +3,7 @@
 This document lists the currently active hotkeys defined in your `init.lua`.
 
 ## App Launchers / New Window
-These commands launch the application if not running, or create a new window on the *current* space if it is already running (avoiding the default macOS behavior of switching spaces).
+These commands launch the application if not running, or create a new window on the *current* space if it is already running. They are designed to bring **only** the new window to the foreground, leaving other windows of the same app in the background.
 
 | Hotkey | Description |
 | :--- | :--- |
@@ -11,6 +11,7 @@ These commands launch the application if not running, or create a new window on 
 | **Cmd + Ctrl + Alt + M** | **Emacs**: Open new client frame here (auto-starts daemon) |
 | **Cmd + Ctrl + Alt + C** | **Google Chrome**: Open new window here |
 | **Cmd + Ctrl + Alt + B** | **Brave Browser**: Open new window here |
+| **Cmd + Ctrl + Alt + V** | **VS Code**: Open new window here |
 
 ## Window Navigation (Current Space Only)
 Cycle through open windows on the current desktop space.
