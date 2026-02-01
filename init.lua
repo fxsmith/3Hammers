@@ -299,5 +299,29 @@ end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)
 
+-- ============================================================
+-- Window Switcher (Alt-Tab replacement)
+-- ============================================================
+
+-- Create a customized switcher
+local switcher = hs.window.switcher.new(
+    hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{},
+    {
+        showTitles = true,
+        thumbnailSize = 128,
+        selectedThumbnailSize = 256,
+        showSelectedTitle = true,
+        backgroundColor = {0, 0, 0, 0.8},
+        highlightColor = {0.3, 0.3, 0.3, 0.8},
+    }
+)
+
+-- Bind to Ctrl+Cmd+Up
+-- Holding the modifiers and tapping Up will cycle forward.
+-- Once open, Left/Right arrows should also work.
+hs.hotkey.bind({"ctrl", "cmd"}, "up", function()
+    switcher:next()
+end)
+
 
 

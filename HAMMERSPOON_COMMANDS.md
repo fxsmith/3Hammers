@@ -20,6 +20,7 @@ Cycle through open windows on the current desktop space.
 | :--- | :--- |
 | **Cmd + Alt + Left** | Cycle to **previous** window |
 | **Cmd + Alt + Right** | Cycle to **next** window |
+| **Ctrl + Cmd + Up** | **Window Switcher**: Show large thumbnails, navigate with Arrow Keys + Enter |
 
 ## Window Management
 Resize or change the state of the currently focused window.
