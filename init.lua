@@ -140,6 +140,28 @@ end
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromeNewWindowHere)
 
 -- ============================================================
+-- Hotkey: Brave fresh window in current Space
+-- ============================================================
+
+local function braveNewWindowHere()
+  local app = hs.application.get("Brave Browser")
+  if not app then
+    -- Launch without forcing space switch
+    hs.application.open("Brave Browser", 0, true)
+    hs.timer.doAfter(0.5, function()
+      hs.eventtap.keyStroke({ "cmd" }, "n", 0)
+    end)
+  else
+    -- Don't jump spaces; then create a new window "here"
+    app:activate(false)
+    hs.eventtap.keyStroke({ "cmd" }, "n", 0)
+  end
+end
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "B", braveNewWindowHere)
+
+
+-- ============================================================
 -- (Optional) Hotkey: restart Emacs daemon (useful during config changes)
 -- ============================================================
 
@@ -151,3 +173,68 @@ local function restartEmacsDaemon()
 end
 
 -- hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "R", restartEmacsDaemon)
+
+-- ============================================================
+-- Window Cycling
+-- ============================================================
+
+local cycleFilter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{}
+cycleFilter:setSortOrder(hs.window.filter.sortByCreated)
+
+local function cycleWindows(step)
+  local windows = cycleFilter:getWindows()
+  local focused = hs.window.focusedWindow()
+  local numWindows = #windows
+
+  if numWindows == 0 then return end
+
+  local currentIndex = 0
+  if focused then
+    for i, w in ipairs(windows) do
+      if w:id() == focused:id() then
+        currentIndex = i
+        break
+      end
+    end
+  end
+
+  if currentIndex == 0 then
+    windows[1]:focus()
+    return
+  end
+
+  local newIndex = currentIndex + step
+  if newIndex > numWindows then newIndex = 1 end
+  if newIndex < 1 then newIndex = numWindows end
+
+  windows[newIndex]:focus()
+end
+
+-- Bind to Cmd+Alt+Left/Right to cycle through windows on the current space
+-- (Using Cmd+Alt because Cmd+Left/Right are standard text navigation keys)
+hs.hotkey.bind({"cmd", "alt"}, "left", function() cycleWindows(-1) end)
+hs.hotkey.bind({"cmd", "alt"}, "right", function() cycleWindows(1) end)
+
+-- ============================================================
+-- Window Management (Maximize / Fullscreen)
+-- ============================================================
+
+-- Cmd+Alt+Up: Maximize window (fill screen, keep menubar/dock visible)
+hs.hotkey.bind({"cmd", "alt"}, "up", function()
+  local win = hs.window.focusedWindow()
+  if win then win:maximize() end
+end)
+
+-- Cmd+Ctrl+Alt+Up: Enter native macOS Fullscreen
+hs.hotkey.bind({"cmd", "ctrl", "alt"}, "up", function()
+  local win = hs.window.focusedWindow()
+  if win then win:setFullScreen(true) end
+end)
+
+-- Cmd+Ctrl+Alt+Down: Exit native macOS Fullscreen
+hs.hotkey.bind({"cmd", "ctrl", "alt"}, "down", function()
+  local win = hs.window.focusedWindow()
+  if win then win:setFullScreen(false) end
+end)
+
+
