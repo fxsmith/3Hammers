@@ -3,7 +3,7 @@ local function newGhosttyHere()
 
     if not app then
         -- Launch without macOS jumping Spaces
-        hs.application.open("Ghostty", 0, true)
+        hs.application.open("Ghostty", 0, false)
         hs.timer.doAfter(0.3, function()
             hs.eventtap.keyStroke({"cmd"}, "n")
         end)
@@ -113,6 +113,10 @@ local function emacsClientHere()
   end
   -- -c: create frame; -n: don't wait; -a "": don't auto-start GUI app
   runAsync(shellquote(EMACSCLIENT) .. " -c -n -a ''")
+  hs.timer.doAfter(0.1, function()
+    local app = hs.application.get("Emacs")
+    if app then app:activate(true) end
+  end)
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "M", emacsClientHere)
@@ -125,7 +129,7 @@ local function chromeNewWindowHere()
   local app = hs.application.get("Google Chrome")
   if not app then
     -- Launch without forcing space switch
-    hs.application.open("Google Chrome", 0, true)
+    hs.application.open("Google Chrome", 0, false)
     hs.timer.doAfter(0.5, function()
       -- Requires Accessibility permission for Hammerspoon to send keystrokes
       hs.eventtap.keyStroke({ "cmd" }, "n", 0)
@@ -147,7 +151,7 @@ local function braveNewWindowHere()
   local app = hs.application.get("Brave Browser")
   if not app then
     -- Launch without forcing space switch
-    hs.application.open("Brave Browser", 0, true)
+    hs.application.open("Brave Browser", 0, false)
     hs.timer.doAfter(0.5, function()
       hs.eventtap.keyStroke({ "cmd" }, "n", 0)
     end)
@@ -236,5 +240,27 @@ hs.hotkey.bind({"cmd", "ctrl", "alt"}, "down", function()
   local win = hs.window.focusedWindow()
   if win then win:setFullScreen(false) end
 end)
+
+-- ============================================================
+-- Hotkey: VS Code fresh window in current Space
+-- ============================================================
+
+local function vscodeNewWindowHere()
+  local app = hs.application.get("Code")
+  if not app then
+    -- Launch without forcing space switch
+    hs.application.open("/Users/fredsmit/programs/Visual Studio Code.app", 0, false)
+    hs.timer.doAfter(0.5, function()
+      hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
+    end)
+  else
+    -- Don't jump spaces; then create a new window "here"
+    app:activate(false)
+    hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
+  end
+end
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)
+
 
 
