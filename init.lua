@@ -308,19 +308,26 @@ local switcher = hs.window.switcher.new(
     hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{},
     {
         showTitles = true,
-        thumbnailSize = 128,
-        selectedThumbnailSize = 256,
+        thumbnailSize = 384,
+        selectedThumbnailSize = 0,
         showSelectedTitle = true,
         backgroundColor = {0, 0, 0, 0.8},
         highlightColor = {0.3, 0.3, 0.3, 0.8},
     }
 )
 
--- Bind to Ctrl+Cmd+Up
--- Holding the modifiers and tapping Up will cycle forward.
--- Once open, Left/Right arrows should also work.
+-- Bind to Ctrl+Cmd+Up (Open / Next)
 hs.hotkey.bind({"ctrl", "cmd"}, "up", function()
     switcher:next()
+end)
+
+-- Bind Left/Right arrows for navigation while holding Ctrl+Cmd
+hs.hotkey.bind({"ctrl", "cmd"}, "right", function()
+    switcher:next()
+end)
+
+hs.hotkey.bind({"ctrl", "cmd"}, "left", function()
+    switcher:previous()
 end)
 
 
