@@ -330,5 +330,13 @@ hs.hotkey.bind({"ctrl", "cmd"}, "left", function()
     switcher:previous()
 end)
 
+-- ============================================================
+-- Toggle Menubar Visibility
+-- ============================================================
+hs.hotkey.bind({"ctrl"}, "tab", function()
+    hs.osascript.applescript('tell application "System Events" to set autohide menu bar of dock preferences to not autohide menu bar of dock preferences')
+end)
+
+
 
 
