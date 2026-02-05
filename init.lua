@@ -362,3 +362,4 @@ end)
 
 require("vpn")
 require("hs.ipc")
+require("i3_hud")

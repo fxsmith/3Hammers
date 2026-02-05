@@ -1,0 +1,288 @@
+local hs = hs
+local canvas = hs.canvas
+local screen = hs.screen
+
+-- Configuration
+local LABEL_WIDTH_CHARS = 14
+local FONT_NAME = "Menlo"
+local FONT_SIZE = 12
+local BAR_HEIGHT = 22 -- Standard macOS menu bar height
+local CHAR_WIDTH = 7.5 -- Approx width of Menlo 12 char (tweaked for fit)
+local ITEM_PADDING = 10 -- px padding inside each tab
+local ITEM_MARGIN = 2   -- px gap between tabs
+
+-- Colors
+local COLOR_ACTIVE_BG = { hex = "#007AFF", alpha = 1.0 }
+local COLOR_ACTIVE_TXT = { white = 1.0 }
+local COLOR_INACTIVE_BG = { hex = "#000000", alpha = 0.8 } -- Dark background for contrast
+local COLOR_INACTIVE_TXT = { white = 0.6 } -- Gray text
+
+-- State
+local tracked_windows = {}
+local hud_canvas = nil
+
+-- Filters
+local global_filter = hs.window.filter.new():setDefaultFilter{}
+global_filter:setSortOrder(hs.window.filter.sortByCreated)
+
+local space_filter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{}
+
+-- -----------------------------------------------------------------------
+-- Logic
+-- -----------------------------------------------------------------------
+
+local function track_window(win)
+    if not win then return end
+    local id = win:id()
+    local found = false
+    for _, tracked_id in ipairs(tracked_windows) do
+        if tracked_id == id then found = true; break end
+    end
+    if not found then table.insert(tracked_windows, id) end
+end
+
+local function untrack_window(win)
+    if not win then return end
+    local id = win:id()
+    for i, tracked_id in ipairs(tracked_windows) do
+        if tracked_id == id then table.remove(tracked_windows, i); break end
+    end
+end
+
+local function truncate_and_pad(text, width)
+    if not text then text = "" end
+    text = text:gsub("\n", ""):gsub("\t", " ")
+    local text_len = utf8.len(text) or #text
+
+    if text_len > width then
+        local result = ""
+        local count = 0
+        for p, c in utf8.codes(text) do
+            count = count + 1
+            if count > (width - 3) then break end
+            result = result .. utf8.char(c)
+        end
+        return result .. "..."
+    else
+        local padding = width - text_len
+        local left_pad = math.floor(padding / 2)
+        local right_pad = padding - left_pad
+        return string.rep(" ", left_pad) .. text .. string.rep(" ", right_pad)
+    end
+end
+
+-- -----------------------------------------------------------------------
+-- UI Rendering (Canvas)
+-- -----------------------------------------------------------------------
+
+local function init_canvas()
+    if hud_canvas then hud_canvas:delete() end
+    -- Initial generic rect, will be moved in update
+    hud_canvas = canvas.new({x=0, y=0, w=100, h=BAR_HEIGHT})
+    -- Level: Status (above normal windows, same level as menu bar items)
+    hud_canvas:level(canvas.windowLevels.status)
+    hud_canvas:behavior(canvas.windowBehaviors.canJoinAllSpaces)
+    hud_canvas:show()
+end
+
+local function update_hud()
+    if not hud_canvas then init_canvas() end
+
+    -- 1. Sync windows
+    local windows_on_space = space_filter:getWindows()
+    local on_space_map = {}
+    for _, w in ipairs(windows_on_space) do
+        on_space_map[w:id()] = w
+        track_window(w) -- Ensure tracked
+    end
+
+    local focused_win = hs.window.focusedWindow()
+    local focused_id = focused_win and focused_win:id() or nil
+
+    -- 2. Build Element List
+    local elements = {}
+    
+    -- We need to calculate widths to center the bar
+    -- Fixed width per item for stability:
+    -- Width = (Chars * CharWidth) + Padding
+    local item_width = (LABEL_WIDTH_CHARS * CHAR_WIDTH) + (ITEM_PADDING * 2)
+    local visible_count = 0
+    local visible_ids = {}
+
+    for _, id in ipairs(tracked_windows) do
+        if on_space_map[id] then
+            visible_count = visible_count + 1
+            table.insert(visible_ids, id)
+        end
+    end
+
+    if visible_count == 0 then
+        -- Optional: Hide canvas or show empty state
+        -- Let's show empty state
+        visible_count = 1 
+    end
+
+    local total_width = (visible_count * item_width) + ((visible_count - 1) * ITEM_MARGIN)
+    
+    -- 3. Reposition Canvas (Center Top)
+    local main_screen = hs.screen.mainScreen()
+    local screen_frame = main_screen:fullFrame()
+    local center_x = screen_frame.x + (screen_frame.w / 2)
+    local origin_x = center_x - (total_width / 2)
+    
+    hud_canvas:frame({
+        x = origin_x,
+        y = screen_frame.y, -- Top of screen
+        w = total_width,
+        h = BAR_HEIGHT
+    })
+
+    -- 4. Draw Elements
+    local current_x = 0
+
+    if #visible_ids == 0 then
+        -- Empty State
+        elements[#elements+1] = {
+            type = "text",
+            text = "[ — ]",
+            textSize = FONT_SIZE,
+            textFont = FONT_NAME,
+            textColor = COLOR_INACTIVE_TXT,
+            textAlignment = "center",
+            frame = { x = 0, y = 3, w = item_width, h = BAR_HEIGHT }
+        }
+    else
+        for _, id in ipairs(visible_ids) do
+            local win = on_space_map[id]
+            local is_active = (id == focused_id)
+            
+            -- Background Pill
+            elements[#elements+1] = {
+                type = "rectangle",
+                action = "fill",
+                fillColor = is_active and COLOR_ACTIVE_BG or COLOR_INACTIVE_BG,
+                roundedRectRadii = { xRadius = 4, yRadius = 4 },
+                frame = { x = current_x, y = 2, w = item_width, h = BAR_HEIGHT - 4 }
+            }
+
+            -- Text
+            local title = win:title()
+            if not title or title == "" then title = win:application():name() end
+            local label_text = truncate_and_pad(title, LABEL_WIDTH_CHARS)
+
+            elements[#elements+1] = {
+                type = "text",
+                text = label_text,
+                textSize = FONT_SIZE,
+                textFont = is_active and FONT_NAME.."-Bold" or FONT_NAME,
+                textColor = is_active and COLOR_ACTIVE_TXT or COLOR_INACTIVE_TXT,
+                textAlignment = "center",
+                -- Offset Y slightly to center text vertically
+                frame = { x = current_x, y = 4, w = item_width, h = BAR_HEIGHT } 
+            }
+
+            current_x = current_x + item_width + ITEM_MARGIN
+        end
+    end
+
+    hud_canvas:replaceElements(elements)
+end
+
+-- -----------------------------------------------------------------------
+-- Watchers
+-- -----------------------------------------------------------------------
+
+global_filter:subscribe(hs.window.filter.windowCreated, function(win)
+    track_window(win)
+    hs.timer.doAfter(0.05, update_hud) 
+end)
+
+global_filter:subscribe(hs.window.filter.windowDestroyed, function(win)
+    untrack_window(win)
+    update_hud()
+end)
+
+hs.window.filter.default:subscribe(hs.window.filter.windowFocused, function()
+    update_hud()
+end)
+
+local space_watcher = hs.spaces.watcher.new(function()
+    hs.timer.doAfter(0.1, update_hud)
+end)
+space_watcher:start()
+
+-- Monitor screen resolution changes to re-center
+local screen_watcher = hs.screen.watcher.new(function()
+    update_hud()
+end)
+screen_watcher:start()
+
+-- -----------------------------------------------------------------------
+-- Navigation (Unchanged logic)
+-- -----------------------------------------------------------------------
+
+local function switch_window(direction)
+    local windows_on_space = space_filter:getWindows()
+    if #windows_on_space == 0 then return end
+    
+    local on_space_map = {}
+    for _, w in ipairs(windows_on_space) do
+        on_space_map[w:id()] = w
+    end
+
+    local ordered_current_space = {}
+    for _, id in ipairs(tracked_windows) do
+        if on_space_map[id] then
+            table.insert(ordered_current_space, on_space_map[id])
+        end
+    end
+    
+    if #ordered_current_space == 0 then return end
+
+    local focused_win = hs.window.focusedWindow()
+    local current_idx = 0
+    if focused_win then
+        for i, w in ipairs(ordered_current_space) do
+            if w:id() == focused_win:id() then
+                current_idx = i
+                break
+            end
+        end
+    end
+
+    local next_idx = current_idx
+    if direction == "next" then
+        next_idx = current_idx + 1
+    elseif direction == "prev" then
+        next_idx = current_idx - 1
+    end
+
+    if next_idx > #ordered_current_space then next_idx = 1 end
+    if next_idx < 1 then next_idx = #ordered_current_space end
+    
+    if current_idx == 0 then
+        if direction == "next" then next_idx = 1 else next_idx = #ordered_current_space end
+    end
+
+    local target = ordered_current_space[next_idx]
+    if target then target:focus() end
+end
+
+-- -----------------------------------------------------------------------
+-- Bindings
+-- -----------------------------------------------------------------------
+
+hs.hotkey.bind({"ctrl"}, "left", function() switch_window("prev") end)
+hs.hotkey.bind({"ctrl"}, "right", function() switch_window("next") end)
+
+-- Init
+init_canvas()
+for _, w in ipairs(global_filter:getWindows()) do
+    track_window(w)
+end
+update_hud()
+
+return {
+    switchWindow = switch_window,
+    update = update_hud
+}
