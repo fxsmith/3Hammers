@@ -102,10 +102,6 @@ local function update_hud()
     -- 2. Build Element List
     local elements = {}
     
-    -- We need to calculate widths to center the bar
-    -- Fixed width per item for stability:
-    -- Width = (Chars * CharWidth) + Padding
-    local item_width = (LABEL_WIDTH_CHARS * CHAR_WIDTH) + (ITEM_PADDING * 2)
     local visible_count = 0
     local visible_ids = {}
 
@@ -116,29 +112,30 @@ local function update_hud()
         end
     end
 
-    if visible_count == 0 then
-        -- Optional: Hide canvas or show empty state
-        -- Let's show empty state
-        visible_count = 1 
-    end
-
-    local total_width = (visible_count * item_width) + ((visible_count - 1) * ITEM_MARGIN)
-    
-    -- 3. Reposition Canvas (Center Top)
+    -- 3. Calculate Geometry (Full Screen Width)
     local main_screen = hs.screen.mainScreen()
     local screen_frame = main_screen:fullFrame()
-    local center_x = screen_frame.x + (screen_frame.w / 2)
-    local origin_x = center_x - (total_width / 2)
     
+    -- If no windows, we treat it as 1 slot for the empty message
+    local slot_count = visible_count > 0 and visible_count or 1
+    
+    -- Calculate width per item, subtracting margins
+    -- Total Margins = (slot_count + 1) * ITEM_MARGIN
+    -- Available Width = ScreenWidth - Total Margins
+    local total_margins = (slot_count + 1) * ITEM_MARGIN
+    local available_width = screen_frame.w - total_margins
+    local item_width = available_width / slot_count
+    
+    -- Canvas covers the full top strip
     hud_canvas:frame({
-        x = origin_x,
-        y = screen_frame.y, -- Top of screen
-        w = total_width,
+        x = screen_frame.x,
+        y = screen_frame.y,
+        w = screen_frame.w,
         h = BAR_HEIGHT
     })
 
     -- 4. Draw Elements
-    local current_x = 0
+    local current_x = ITEM_MARGIN -- Start with a margin
 
     if #visible_ids == 0 then
         -- Empty State
@@ -149,7 +146,7 @@ local function update_hud()
             textFont = FONT_NAME,
             textColor = COLOR_INACTIVE_TXT,
             textAlignment = "center",
-            frame = { x = 0, y = 3, w = item_width, h = BAR_HEIGHT }
+            frame = { x = current_x, y = 3, w = item_width, h = BAR_HEIGHT }
         }
     else
         for _, id in ipairs(visible_ids) do
@@ -167,12 +164,18 @@ local function update_hud()
 
             -- Text
             local app_name = win:application():name()
-            local app_initial = app_name:sub(1,1):upper()
+            local app_initial = app_name:sub(1,3):upper()
             local title = win:title()
             if not title or title == "" then title = app_name end
             
             local display_title = app_initial .. ":" .. title
-            local label_text = truncate_and_pad(display_title, LABEL_WIDTH_CHARS)
+            -- Dynamic truncation logic based on approximate character capacity
+            -- Est. chars = item_width / CHAR_WIDTH
+            -- We subtract a bit for safety padding
+            local max_chars = math.floor((item_width - (ITEM_PADDING * 2)) / CHAR_WIDTH)
+            if max_chars < 5 then max_chars = 5 end -- minimum sanity
+            
+            local label_text = truncate_and_pad(display_title, max_chars)
 
             elements[#elements+1] = {
                 type = "text",
