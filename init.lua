@@ -1,3 +1,4 @@
+local f = io.open(os.getenv("HOME") .. "/.hammerspoon/init_debug.log", "a"); if f then f:write("Init loaded at " .. os.date() .. "\n"); f:close(); end
 -- ============================================================
 -- Core Helper: Focus ONLY the newly created window
 -- ============================================================
@@ -59,7 +60,7 @@ local function newGhosttyHere()
     end)
 end
 
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "T", newGhosttyHere)
+hs.hotkey.bind({"ctrl", "alt", "cmd"}, "t", newGhosttyHere)
 
 -- ============================================================
 -- Helpers
@@ -182,7 +183,26 @@ local function chromeNewWindowHere()
   end)
 end
 
-hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromeNewWindowHere)
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "G", chromeNewWindowHere)
+
+-- ============================================================
+-- Hotkey: Chromium fresh window in current Space
+-- ============================================================
+
+local function chromiumNewWindowHere()
+  focusNewWindow("Google Chrome Canary", function(app)
+    if not app then
+      hs.application.open("Google Chrome Canary", 0, false)
+      hs.timer.doAfter(0.5, function()
+        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
+      end)
+    else
+      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
+    end
+  end)
+end
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromiumNewWindowHere)
 
 -- ============================================================
 -- Hotkey: Brave fresh window in current Space
@@ -340,3 +360,5 @@ end)
 
 
 
+require("vpn")
+require("hs.ipc")
