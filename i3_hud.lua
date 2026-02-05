@@ -5,11 +5,11 @@ local screen = hs.screen
 -- Configuration
 local LABEL_WIDTH_CHARS = 14
 local FONT_NAME = "Menlo"
-local FONT_SIZE = 12
-local BAR_HEIGHT = 22 -- Standard macOS menu bar height
-local CHAR_WIDTH = 7.5 -- Approx width of Menlo 12 char (tweaked for fit)
-local ITEM_PADDING = 10 -- px padding inside each tab
-local ITEM_MARGIN = 2   -- px gap between tabs
+local FONT_SIZE = 16
+local BAR_HEIGHT = 26 -- Increased for 16pt font
+local CHAR_WIDTH = 10.0 -- Adjusted for 16pt Menlo
+local ITEM_PADDING = 12 -- Slightly more padding for larger text
+local ITEM_MARGIN = 3   -- px gap between tabs
 
 -- Colors
 local COLOR_ACTIVE_BG = { hex = "#007AFF", alpha = 1.0 }
@@ -166,9 +166,13 @@ local function update_hud()
             }
 
             -- Text
+            local app_name = win:application():name()
+            local app_initial = app_name:sub(1,1):upper()
             local title = win:title()
-            if not title or title == "" then title = win:application():name() end
-            local label_text = truncate_and_pad(title, LABEL_WIDTH_CHARS)
+            if not title or title == "" then title = app_name end
+            
+            local display_title = app_initial .. ":" .. title
+            local label_text = truncate_and_pad(display_title, LABEL_WIDTH_CHARS)
 
             elements[#elements+1] = {
                 type = "text",
@@ -177,8 +181,8 @@ local function update_hud()
                 textFont = is_active and FONT_NAME.."-Bold" or FONT_NAME,
                 textColor = is_active and COLOR_ACTIVE_TXT or COLOR_INACTIVE_TXT,
                 textAlignment = "center",
-                -- Offset Y slightly to center text vertically
-                frame = { x = current_x, y = 4, w = item_width, h = BAR_HEIGHT } 
+                -- Offset Y adjusted for 16pt font in 26px bar
+                frame = { x = current_x, y = 3, w = item_width, h = BAR_HEIGHT } 
             }
 
             current_x = current_x + item_width + ITEM_MARGIN
@@ -272,8 +276,18 @@ end
 -- Bindings
 -- -----------------------------------------------------------------------
 
+local function toggle_hud()
+    if hud_canvas:isShowing() then
+        hud_canvas:hide()
+    else
+        hud_canvas:show()
+        update_hud()
+    end
+end
+
 hs.hotkey.bind({"ctrl"}, "left", function() switch_window("prev") end)
 hs.hotkey.bind({"ctrl"}, "right", function() switch_window("next") end)
+hs.hotkey.bind({"alt", "cmd"}, "m", toggle_hud)
 
 -- Init
 init_canvas()
