@@ -241,11 +241,18 @@ end
 -- Window Cycling
 -- ============================================================
 
-local cycleFilter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{}
+local cycleFilter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter({visible=true})
 cycleFilter:setSortOrder(hs.window.filter.sortByCreated)
 
 local function cycleWindows(step)
-  local windows = cycleFilter:getWindows()
+  local rawWindows = cycleFilter:getWindows()
+  local windows = {}
+  for _, w in ipairs(rawWindows) do
+      if w:isVisible() then
+          table.insert(windows, w)
+      end
+  end
+
   local focused = hs.window.focusedWindow()
   local numWindows = #windows
 
@@ -325,7 +332,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)
 
 -- Create a customized switcher
 local switcher = hs.window.switcher.new(
-    hs.window.filter.new():setCurrentSpace(true):setDefaultFilter{},
+    hs.window.filter.new():setCurrentSpace(true):setDefaultFilter({visible=true}),
     {
         showTitles = true,
         thumbnailSize = 384,

@@ -33,6 +33,7 @@ local space_filter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilt
 
 local function should_exclude_window(win)
     if not win then return true end
+    if not win:isVisible() then return true end
     local app = win:application()
     if not app then return true end
     
