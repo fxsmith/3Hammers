@@ -31,8 +31,30 @@ local space_filter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilt
 -- Logic
 -- -----------------------------------------------------------------------
 
+local function should_exclude_window(win)
+    if not win then return true end
+    local app = win:application()
+    if not app then return true end
+    
+    local app_name = app:name()
+    local win_frame = win:frame()
+
+    -- Safety check for frame
+    if not win_frame then return false end
+    
+    -- RULE: Zoom "Start Sharing" or mini control windows
+    -- Adjust dimensions as needed. Often these are small floating panels.
+    if (app_name == "zoom.us" or app_name == "Zoom") and (win_frame.w < 400 or win_frame.h < 200) then
+        return true
+    end
+
+    return false
+end
+
 local function track_window(win)
     if not win then return end
+    if should_exclude_window(win) then return end
+
     local id = win:id()
     local found = false
     for _, tracked_id in ipairs(tracked_windows) do
@@ -92,8 +114,10 @@ local function update_hud()
     local windows_on_space = space_filter:getWindows()
     local on_space_map = {}
     for _, w in ipairs(windows_on_space) do
-        on_space_map[w:id()] = w
-        track_window(w) -- Ensure tracked
+        if not should_exclude_window(w) then
+            on_space_map[w:id()] = w
+            track_window(w) -- Ensure tracked
+        end
     end
 
     local focused_win = hs.window.focusedWindow()
@@ -290,7 +314,7 @@ end
 
 hs.hotkey.bind({"ctrl"}, "left", function() switch_window("prev") end)
 hs.hotkey.bind({"ctrl"}, "right", function() switch_window("next") end)
-hs.hotkey.bind({"alt", "cmd"}, "m", toggle_hud)
+hs.hotkey.bind({"alt", "cmd"}, "return", toggle_hud)
 
 -- Init
 init_canvas()
