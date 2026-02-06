@@ -171,7 +171,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "M", emacsClientHere)
 -- ============================================================
 
 local function chromeNewWindowHere()
-  launchOrNewWindow("Google Chrome", { "cmd" }, "n")
+  launchOrNewWindow("com.google.Chrome", { "cmd" }, "n", "/Applications/Google Chrome.app")
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "G", chromeNewWindowHere)
