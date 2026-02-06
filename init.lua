@@ -46,18 +46,18 @@ local function focusNewWindow(appName, actionFn)
   end)
 end
 
+local function launchOrNewWindow(appName, keyMods, keyChar, openPath)
+  focusNewWindow(appName, function(app)
+    if not app then
+      hs.application.open(openPath or appName, 0, false)
+    else
+      hs.eventtap.keyStroke(keyMods, keyChar, 0, app)
+    end
+  end)
+end
+
 local function newGhosttyHere()
-    focusNewWindow("Ghostty", function(app)
-        if not app then
-            hs.application.open("Ghostty", 0, false)
-            hs.timer.doAfter(0.3, function()
-                hs.eventtap.keyStroke({"cmd"}, "n")
-            end)
-        else
-            -- Try to send keystroke to specific app without activating it fully
-            hs.eventtap.keyStroke({"cmd"}, "n", 0, app)
-        end
-    end)
+    launchOrNewWindow("Ghostty", {"cmd"}, "n")
 end
 
 hs.hotkey.bind({"ctrl", "alt", "cmd"}, "t", newGhosttyHere)
@@ -171,16 +171,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "M", emacsClientHere)
 -- ============================================================
 
 local function chromeNewWindowHere()
-  focusNewWindow("Google Chrome", function(app)
-    if not app then
-      hs.application.open("Google Chrome", 0, false)
-      hs.timer.doAfter(0.5, function()
-        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-      end)
-    else
-      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
-    end
-  end)
+  launchOrNewWindow("Google Chrome", { "cmd" }, "n")
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "G", chromeNewWindowHere)
@@ -190,16 +181,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "G", chromeNewWindowHere)
 -- ============================================================
 
 local function chromiumNewWindowHere()
-  focusNewWindow("Google Chrome Canary", function(app)
-    if not app then
-      hs.application.open("Google Chrome Canary", 0, false)
-      hs.timer.doAfter(0.5, function()
-        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-      end)
-    else
-      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
-    end
-  end)
+  launchOrNewWindow("Google Chrome Canary", { "cmd" }, "n")
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromiumNewWindowHere)
@@ -209,16 +191,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "C", chromiumNewWindowHere)
 -- ============================================================
 
 local function braveNewWindowHere()
-  focusNewWindow("Brave Browser", function(app)
-    if not app then
-      hs.application.open("Brave Browser", 0, false)
-      hs.timer.doAfter(0.5, function()
-        hs.eventtap.keyStroke({ "cmd" }, "n", 0)
-      end)
-    else
-      hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
-    end
-  end)
+  launchOrNewWindow("Brave Browser", { "cmd" }, "n")
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "B", braveNewWindowHere)
@@ -312,16 +285,7 @@ end)
 -- ============================================================
 
 local function vscodeNewWindowHere()
-  focusNewWindow("Code", function(app)
-    if not app then
-      hs.application.open("/Users/fredsmit/programs/Visual Studio Code.app", 0, false)
-      hs.timer.doAfter(0.5, function()
-        hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0)
-      end)
-    else
-      hs.eventtap.keyStroke({ "cmd", "shift" }, "n", 0, app)
-    end
-  end)
+  launchOrNewWindow("Code", { "cmd", "shift" }, "n", "/Users/fredsmit/programs/Visual Studio Code.app")
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)
@@ -367,6 +331,7 @@ end)
 
 
 
-require("vpn")
+-- Keep these in global scope so they aren't garbage collected
+_G.vpn = require("vpn")
 require("hs.ipc")
-require("i3_hud")
+_G.hud = require("i3_hud")

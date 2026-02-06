@@ -220,32 +220,38 @@ local function update_hud()
     hud_canvas:replaceElements(elements)
 end
 
+local update_timer = nil
+local function debounced_update_hud()
+    if update_timer then update_timer:stop() end
+    update_timer = hs.timer.doAfter(0.05, update_hud)
+end
+
 -- -----------------------------------------------------------------------
 -- Watchers
 -- -----------------------------------------------------------------------
 
 global_filter:subscribe(hs.window.filter.windowCreated, function(win)
     track_window(win)
-    hs.timer.doAfter(0.05, update_hud) 
+    debounced_update_hud() 
 end)
 
 global_filter:subscribe(hs.window.filter.windowDestroyed, function(win)
     untrack_window(win)
-    update_hud()
+    debounced_update_hud()
 end)
 
 hs.window.filter.default:subscribe(hs.window.filter.windowFocused, function()
-    update_hud()
+    debounced_update_hud()
 end)
 
 local space_watcher = hs.spaces.watcher.new(function()
-    hs.timer.doAfter(0.1, update_hud)
+    debounced_update_hud()
 end)
 space_watcher:start()
 
 -- Monitor screen resolution changes to re-center
 local screen_watcher = hs.screen.watcher.new(function()
-    update_hud()
+    debounced_update_hud()
 end)
 screen_watcher:start()
 
