@@ -57,7 +57,7 @@ local function launchOrNewWindow(appName, keyMods, keyChar, openPath)
 end
 
 local function newGhosttyHere()
-    launchOrNewWindow("Ghostty", {"cmd"}, "n")
+    launchOrNewWindow("Ghostty", {"cmd"}, "n", "/Applications/Ghostty.app")
 end
 
 hs.hotkey.bind({"ctrl", "alt", "cmd"}, "t", newGhosttyHere)

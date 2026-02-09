@@ -7,11 +7,12 @@ These commands launch the application if not running, or create a new window on 
 
 | Hotkey | Description |
 | :--- | :--- |
-| **Cmd + Ctrl + Alt + T** | **Ghostty**: Open new window here |
-| **Cmd + Ctrl + Alt + M** | **Emacs**: Open new client frame here (auto-starts daemon) |
-| **Cmd + Ctrl + Alt + C** | **Google Chrome**: Open new window here |
-| **Cmd + Ctrl + Alt + B** | **Brave Browser**: Open new window here |
-| **Cmd + Ctrl + Alt + V** | **VS Code**: Open new window here |
+| **Ctrl + Alt + Cmd + T** | **Ghostty**: Open new window here |
+| **Ctrl + Alt + Cmd + M** | **Emacs**: Open new client frame here (auto-starts daemon) |
+| **Ctrl + Alt + Cmd + G** | **Google Chrome**: Open new window here |
+| **Ctrl + Alt + Cmd + C** | **Chrome Canary**: Open new window here |
+| **Ctrl + Alt + Cmd + B** | **Brave Browser**: Open new window here |
+| **Ctrl + Alt + Cmd + V** | **VS Code**: Open new window here |
 
 ## Window Navigation (Current Space Only)
 Cycle through open windows on the current desktop space.
@@ -20,7 +21,9 @@ Cycle through open windows on the current desktop space.
 | :--- | :--- |
 | **Cmd + Alt + Left** | Cycle to **previous** window |
 | **Cmd + Alt + Right** | Cycle to **next** window |
-| **Ctrl + Cmd + Up** | **Window Switcher**: Show large thumbnails, navigate with Arrow Keys + Enter |
+| **Ctrl + Cmd + Up** | **Window Switcher**: Show large thumbnails |
+| **Ctrl + Cmd + Right** | **Window Switcher**: Next window (hold Ctrl+Cmd) |
+| **Ctrl + Cmd + Left** | **Window Switcher**: Previous window (hold Ctrl+Cmd) |
 
 ## Window Management
 Resize or change the state of the currently focused window.
@@ -30,6 +33,12 @@ Resize or change the state of the currently focused window.
 | **Cmd + Alt + Up** | **Maximize**: Fill screen (keep Dock/Menubar visible) |
 | **Cmd + Ctrl + Alt + Up** | **Enter Fullscreen**: Native macOS fullscreen mode |
 | **Cmd + Ctrl + Alt + Down** | **Exit Fullscreen**: Leave native macOS fullscreen mode |
+
+## System Toggles
+
+| Hotkey | Description |
+| :--- | :--- |
+| **Ctrl + Tab** | Toggle automatic hiding of the macOS menu bar |
 
 ---
 *Note: Hammerspoon usually reloads automatically when `init.lua` is saved. If hotkeys do not work, try manually reloading the configuration.*
