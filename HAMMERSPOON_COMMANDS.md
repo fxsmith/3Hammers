@@ -21,6 +21,7 @@ Cycle through open windows on the current desktop space.
 | :--- | :--- |
 | **Cmd + Alt + Left** | Cycle to **previous** window |
 | **Cmd + Alt + Right** | Cycle to **next** window |
+| **Cmd + Alt + 0** | Rebuild window cycle filter |
 | **Ctrl + Cmd + Up** | **Window Switcher**: Show large thumbnails |
 | **Ctrl + Cmd + Right** | **Window Switcher**: Next window (hold Ctrl+Cmd) |
 | **Ctrl + Cmd + Left** | **Window Switcher**: Previous window (hold Ctrl+Cmd) |

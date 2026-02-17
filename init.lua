@@ -214,14 +214,37 @@ end
 -- Window Cycling
 -- ============================================================
 
-local cycleFilter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter({visible=true})
-cycleFilter:setSortOrder(hs.window.filter.sortByCreated)
+local function buildCycleFilter()
+  local filter = hs.window.filter.new():setCurrentSpace(true):setDefaultFilter({visible=true})
+  filter:setSortOrder(hs.window.filter.sortByCreated)
+  return filter
+end
+
+local cycleFilter = buildCycleFilter()
+
+local function isCycleCandidate(win)
+  if not win then return false end
+  if not win:isVisible() then return false end
+
+  local app = win:application()
+  if not app then return false end
+
+  local appName = app:name()
+  if appName == "zoom.us" or appName == "Zoom" then
+    local frame = win:frame()
+    if frame and (frame.w < 400 or frame.h < 200) then
+      return false
+    end
+  end
+
+  return true
+end
 
 local function cycleWindows(step)
   local rawWindows = cycleFilter:getWindows()
   local windows = {}
   for _, w in ipairs(rawWindows) do
-      if w:isVisible() then
+      if isCycleCandidate(w) then
           table.insert(windows, w)
       end
   end
@@ -253,10 +276,21 @@ local function cycleWindows(step)
   windows[newIndex]:focus()
 end
 
+local function rebuildCycleFilter()
+  cycleFilter = buildCycleFilter()
+
+  -- Warm the filter and refresh HUD if present.
+  cycleFilter:getWindows()
+  if _G.hud and _G.hud.update then
+    hs.timer.doAfter(0.1, _G.hud.update)
+  end
+end
+
 -- Bind to Cmd+Alt+Left/Right to cycle through windows on the current space
 -- (Using Cmd+Alt because Cmd+Left/Right are standard text navigation keys)
 hs.hotkey.bind({"cmd", "alt"}, "left", function() cycleWindows(-1) end)
 hs.hotkey.bind({"cmd", "alt"}, "right", function() cycleWindows(1) end)
+hs.hotkey.bind({"cmd", "alt"}, "0", rebuildCycleFilter)
 
 -- ============================================================
 -- Window Management (Maximize / Fullscreen)
