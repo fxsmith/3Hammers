@@ -117,6 +117,59 @@ local function runAsync(cmd)
 end
 
 -- ============================================================
+-- Space Management
+-- ============================================================
+
+local function switchToSpaceN(n)
+  -- Map numbers to their keyboard characters (1-9, and 0 for 10)
+  local key = tostring(n)
+  if n == 10 then key = "0" end
+  
+  -- Simulate the native Mission Control shortcut for smooth animation.
+  -- Note: "Switch to Desktop N" must be enabled in System Settings.
+  hs.eventtap.keyStroke({"ctrl"}, key, 0)
+  
+  -- Explicitly update HUD immediately to reduce perceived delay
+  if _G.hud and _G.hud.update then
+    _G.hud.update()
+  end
+end
+
+local function switchSpaceStep(step)
+  -- Use native "Move left/right a space" shortcuts for smooth animation.
+  -- Note: These must be enabled in System Settings.
+  local key = (step > 0) and "right" or "left"
+  hs.eventtap.keyStroke({"ctrl"}, key, 0)
+  
+  if _G.hud and _G.hud.update then
+    _G.hud.update()
+  end
+end
+
+-- Bind Ctrl + 1-9 to switch to spaces 1-9
+for i = 1, 9 do
+  hs.hotkey.bind({"ctrl"}, tostring(i), function()
+    switchToSpaceN(i)
+  end)
+end
+-- Bind Ctrl + 0 to switch to space 10
+hs.hotkey.bind({"ctrl"}, "0", function()
+  switchToSpaceN(10)
+end)
+
+-- Bind Ctrl + Alt (Option) + Left/Right to switch previous/next space
+hs.hotkey.bind({"ctrl", "alt"}, "left", function()
+  switchSpaceStep(-1)
+end, nil, function()
+  switchSpaceStep(-1)
+end)
+hs.hotkey.bind({"ctrl", "alt"}, "right", function()
+  switchSpaceStep(1)
+end, nil, function()
+  switchSpaceStep(1)
+end)
+
+-- ============================================================
 -- Emacs daemon: start at login (idempotent)
 -- ============================================================
 

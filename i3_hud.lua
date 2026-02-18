@@ -319,8 +319,7 @@ local function toggle_hud()
     end
 end
 
-hs.hotkey.bind({"ctrl"}, "left", function() switch_window("prev") end)
-hs.hotkey.bind({"ctrl"}, "right", function() switch_window("next") end)
+-- Removed Ctrl+Arrow bindings to reserve those keys for other workflows.
 hs.hotkey.bind({"alt", "cmd"}, "return", toggle_hud)
 
 -- Init
