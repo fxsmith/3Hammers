@@ -306,6 +306,60 @@ local function switch_window(direction)
     if target then target:focus() end
 end
 
+local function move_window(direction)
+    local focused_win = hs.window.focusedWindow()
+    if not focused_win then return end
+    local focused_id = focused_win:id()
+
+    -- Get windows on current space in their current tracked order
+    local windows_on_space = space_filter:getWindows()
+    local on_space_map = {}
+    for _, w in ipairs(windows_on_space) do
+        if not should_exclude_window(w) then
+            on_space_map[w:id()] = true
+        end
+    end
+
+    -- visible_ids is the subset of tracked_windows that are on this space
+    local visible_ids = {}
+    local focused_idx_in_visible = nil
+    for i, id in ipairs(tracked_windows) do
+        if on_space_map[id] then
+            table.insert(visible_ids, id)
+            if id == focused_id then
+                focused_idx_in_visible = #visible_ids
+            end
+        end
+    end
+
+    if not focused_idx_in_visible or #visible_ids < 2 then return end
+
+    -- Determine target index in visible_ids
+    local target_idx_in_visible
+    if direction == "left" then
+        target_idx_in_visible = focused_idx_in_visible - 1
+        if target_idx_in_visible < 1 then target_idx_in_visible = #visible_ids end
+    else
+        target_idx_in_visible = focused_idx_in_visible + 1
+        if target_idx_in_visible > #visible_ids then target_idx_in_visible = 1 end
+    end
+
+    local target_id = visible_ids[target_idx_in_visible]
+
+    -- Now we need to swap focused_id and target_id in the master tracked_windows list
+    local focused_idx_in_tracked, target_idx_in_tracked
+    for i, id in ipairs(tracked_windows) do
+        if id == focused_id then focused_idx_in_tracked = i end
+        if id == target_id then target_idx_in_tracked = i end
+    end
+
+    if focused_idx_in_tracked and target_idx_in_tracked then
+        tracked_windows[focused_idx_in_tracked], tracked_windows[target_idx_in_tracked] = 
+            tracked_windows[target_idx_in_tracked], tracked_windows[focused_idx_in_tracked]
+        update_hud()
+    end
+end
+
 -- -----------------------------------------------------------------------
 -- Bindings
 -- -----------------------------------------------------------------------
@@ -331,5 +385,6 @@ update_hud()
 
 return {
     switchWindow = switch_window,
+    moveWindow = move_window,
     update = update_hud
 }
