@@ -147,15 +147,15 @@ local function switchSpaceStep(step)
 end
 
 -- Bind Ctrl + 1-9 to switch to spaces 1-9
-for i = 1, 9 do
-  hs.hotkey.bind({"ctrl"}, tostring(i), function()
-    switchToSpaceN(i)
-  end)
-end
+-- for i = 1, 9 do
+--   hs.hotkey.bind({"ctrl"}, tostring(i), function()
+--     switchToSpaceN(i)
+--   end)
+-- end
 -- Bind Ctrl + 0 to switch to space 10
-hs.hotkey.bind({"ctrl"}, "0", function()
-  switchToSpaceN(10)
-end)
+-- hs.hotkey.bind({"ctrl"}, "0", function()
+--   switchToSpaceN(10)
+-- end)
 
 -- Bind Ctrl + Alt (Option) + Left/Right to switch previous/next space
 hs.hotkey.bind({"ctrl", "alt"}, "left", function()
