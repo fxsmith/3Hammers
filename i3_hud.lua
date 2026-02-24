@@ -40,11 +40,20 @@ local function should_exclude_window(win)
     local app_name = app:name()
     local win_frame = win:frame()
 
+    -- RULE: Ignore system/background processes that don't need HUD tabs
+    local excluded_apps = {
+        ["Notification Center"] = true,
+        ["Control Center"] = true,
+        ["Window Server"] = true,
+        ["Dock"] = true,
+        ["System Settings"] = true, -- Optional: show or hide settings
+    }
+    if excluded_apps[app_name] then return true end
+
     -- Safety check for frame
     if not win_frame then return false end
     
     -- RULE: Zoom "Start Sharing" or mini control windows
-    -- Adjust dimensions as needed. Often these are small floating panels.
     if (app_name == "zoom.us" or app_name == "Zoom") and (win_frame.w < 400 or win_frame.h < 200) then
         return true
     end
@@ -113,6 +122,7 @@ local function update_hud()
 
     -- 1. Sync windows
     local windows_on_space = space_filter:getWindows()
+
     local on_space_map = {}
     for _, w in ipairs(windows_on_space) do
         if not should_exclude_window(w) then
@@ -386,5 +396,6 @@ update_hud()
 return {
     switchWindow = switch_window,
     moveWindow = move_window,
-    update = update_hud
+    update = update_hud,
+    debouncedUpdate = debounced_update_hud
 }

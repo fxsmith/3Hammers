@@ -129,9 +129,9 @@ local function switchToSpaceN(n)
   -- Note: "Switch to Desktop N" must be enabled in System Settings.
   hs.eventtap.keyStroke({"ctrl"}, key, 0)
   
-  -- Explicitly update HUD immediately to reduce perceived delay
-  if _G.hud and _G.hud.update then
-    _G.hud.update()
+  -- Use debounced update to avoid blocking during space transition
+  if _G.hud and _G.hud.debouncedUpdate then
+    _G.hud.debouncedUpdate()
   end
 end
 
@@ -141,8 +141,8 @@ local function switchSpaceStep(step)
   local key = (step > 0) and "right" or "left"
   hs.eventtap.keyStroke({"ctrl"}, key, 0)
   
-  if _G.hud and _G.hud.update then
-    _G.hud.update()
+  if _G.hud and _G.hud.debouncedUpdate then
+    _G.hud.debouncedUpdate()
   end
 end
 
