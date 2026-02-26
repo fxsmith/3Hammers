@@ -250,6 +250,19 @@ end
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "B", braveNewWindowHere)
 
 
+-- = :==========================================================
+-- Hotkey: Voicetrans CLI
+-- ============================================================
+
+local function voicetransCli()
+  -- Using Ghostty to run the command and exit.
+  local cmd = "cd /Users/fredsmit/personal/dev/voicetrans && ./venv/bin/python3 voicetrans_cli.py && exit"
+  hs.task.new("/Applications/Ghostty.app/Contents/MacOS/ghostty", nil, { "-e", "zsh", "-lc", cmd }):start()
+end
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "D", voicetransCli)
+
+
 -- ============================================================
 -- (Optional) Hotkey: restart Emacs daemon (useful during config changes)
 -- ============================================================

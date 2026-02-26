@@ -13,6 +13,7 @@ These commands launch the application if not running, or create a new window on 
 | **Ctrl + Alt + Cmd + C** | **Chrome Canary**: Open new window here |
 | **Ctrl + Alt + Cmd + B** | **Brave Browser**: Open new window here |
 | **Ctrl + Alt + Cmd + V** | **VS Code**: Open new window here |
+| **Ctrl + Alt + Cmd + D** | **Voicetrans**: Launch CLI in Ghostty |
 
 ## Window Navigation (Current Space Only)
 Cycle through open windows on the current desktop space.
