@@ -56,11 +56,11 @@ local function launchOrNewWindow(appName, keyMods, keyChar, openPath)
   end)
 end
 
-local function newGhosttyHere()
-    launchOrNewWindow("Ghostty", {"cmd"}, "n", "/Applications/Ghostty.app")
+local function newKittyHere()
+    launchOrNewWindow("kitty", {"cmd"}, "n", "/Applications/kitty.app")
 end
 
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "t", newGhosttyHere)
+hs.hotkey.bind({"ctrl", "alt", "cmd"}, "t", newKittyHere)
 
 -- ============================================================
 -- Helpers
@@ -255,9 +255,9 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "B", braveNewWindowHere)
 -- ============================================================
 
 local function voicetransCli()
-  -- Using Ghostty to run the command and exit.
+  -- Using Kitty to run the command and exit.
   local cmd = "cd /Users/fredsmit/personal/dev/voicetrans && ./venv/bin/python3 voicetrans_cli.py && exit"
-  hs.task.new("/Applications/Ghostty.app/Contents/MacOS/ghostty", nil, { "-e", "zsh", "-lc", cmd }):start()
+  hs.task.new("/Applications/kitty.app/Contents/MacOS/kitty", nil, { "-e", "zsh", "-lc", cmd }):start()
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "D", voicetransCli)
@@ -342,6 +342,17 @@ local function vscodeNewWindowHere()
 end
 
 hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "V", vscodeNewWindowHere)
+
+-- ============================================================
+-- Hotkey: nvim in fresh kitty window in current Space
+-- ============================================================
+
+local function nvimNewWindowHere()
+  local cmd = "nvim"
+  hs.task.new("/Applications/kitty.app/Contents/MacOS/kitty", nil, { "-e", "zsh", "-lc", cmd }):start()
+end
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "N", nvimNewWindowHere)
 
 -- ============================================================
 -- Window Switcher (Alt-Tab replacement)

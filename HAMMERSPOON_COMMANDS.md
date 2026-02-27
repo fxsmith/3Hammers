@@ -7,13 +7,14 @@ These commands launch the application if not running, or create a new window on 
 
 | Hotkey | Description |
 | :--- | :--- |
-| **Ctrl + Alt + Cmd + T** | **Ghostty**: Open new window here |
+| **Ctrl + Alt + Cmd + T** | **Kitty**: Open new window here |
 | **Ctrl + Alt + Cmd + M** | **Emacs**: Open new client frame here (auto-starts daemon) |
 | **Ctrl + Alt + Cmd + G** | **Google Chrome**: Open new window here |
 | **Ctrl + Alt + Cmd + C** | **Chrome Canary**: Open new window here |
 | **Ctrl + Alt + Cmd + B** | **Brave Browser**: Open new window here |
 | **Ctrl + Alt + Cmd + V** | **VS Code**: Open new window here |
-| **Ctrl + Alt + Cmd + D** | **Voicetrans**: Launch CLI in Ghostty |
+| **Ctrl + Alt + Cmd + N** | **Nvim**: Open in new Kitty window here |
+| **Ctrl + Alt + Cmd + D** | **Voicetrans**: Launch CLI in Kitty |
 
 ## Window Navigation (Current Space Only)
 Cycle through open windows on the current desktop space.
